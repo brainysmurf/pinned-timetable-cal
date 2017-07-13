@@ -3,7 +3,7 @@ CLI to enter and view your Calendar (Mac) items through the lens of your timetab
 
 ## overview
 
-[Demonstration & Explanation](https://www.youtube.com/watch?v=Rr3nYgZAEAk&feature=youtu.be)
+[Demonstration & Explanation](goo.gl/D7VUSJ)
 
 ## to install:
 
