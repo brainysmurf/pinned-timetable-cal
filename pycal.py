@@ -8,7 +8,8 @@ from subprocess import Popen, PIPE
 import locale as locale_module, os
 from collections import defaultdict
 import json, datetime
-from timezone_info import convert_to_target_timezone, convert_to_source_timezone, get_utc_offset_HH_MM
+from timezone_info import raw_string_with_timezone_to_target, convert_to_local_timezone, get_utc_offset_HH_MM, convert_to_target_timezone
+import time
 
 p = Popen(['which', 'icalBuddy'], stdout=PIPE, stderr=PIPE)
 path, err = p.communicate()
@@ -29,7 +30,8 @@ class CalendarItem(object):
 
     @property
     def raw_start_date_obj(self):
-        return datetime.datetime.strptime(self.start_date, '%A, %B %d, %Y at %H:%M:%S')
+        """ Returns a UTC-aware for that particular moment in time """
+        return raw_string_with_timezone_to_target(self.start_date, '%A, %B %d, %Y at %H:%M:%S %z')
 
     @property
     def start_date_as_date(self):
@@ -53,7 +55,8 @@ class CalendarItem(object):
 
     @property
     def key(self):
-        return convert_to_source_timezone(self.raw_start_date_obj).strftime('%m/%d/%YT%H:%M')
+        return self.raw_start_date_obj.strftime('%m/%d/%YT%H:%M')
+
 
 class ASHelper:
     """
@@ -102,6 +105,7 @@ class ASHelper:
             locale_module.setlocale(locale.LC_ALL, self.locale_string) # make sure the string matches the Languages and Region
         self._initialized = True
 
+
     def list_from_to(self, calendar_name, from_month, from_day, from_year, to_month, to_day, to_year):
         """
         Gets calendar information
@@ -121,7 +125,7 @@ class ASHelper:
                 "-ea",  # exclude all day events
                 "-po", "title,datetime,uid,notes,attendees",
                 "-df", "%A, %B %d, %Y",  # date format
-                "-tf", "%H:%M:%S",       # time format
+                "-tf", "%H:%M:%S %z",       # time format
                 "eventsFrom:'{0}-{1}-{2} 00:00:00 {3}'".format(from_year, from_month, from_day, utc_offset),
                 "to:'{0}-{1}-{2} 23:59:00 {3}'".format(to_year, to_month, to_day, utc_offset)
             ]
@@ -130,6 +134,8 @@ class ASHelper:
             stdout, stderr = p.communicate()
             if not stdout:
                 return {}
+
+            #print(stdout)
 
             # get rid of extraneous first one, then split on repeating \n
             operation = stdout[1:]
@@ -299,6 +305,7 @@ class ASHelper:
                 return {}
             return ret
 
+
     def add_event(self, calendar_name, event_description, event_summary, start_time, num_minutes=30, trigger_minutes_before=0):
         """
         Creates an event in the user's calendar, and automatically displays 5 minutes before the event starts
@@ -315,8 +322,6 @@ class ASHelper:
         Copyright Adam Morris, BSD license
         """
         not self._initalized and self.init()
-
-        start_time_with_tz = convert_to_target_timezone(start_time)
 
         # Defines the applescript
         scpt = '''
@@ -361,7 +366,7 @@ class ASHelper:
 
         # Define the arguments that will be sent to the applescript
         num_minutes = str(num_minutes)
-        from_time = start_time_with_tz.strftime(self.strftime_format_string) if isinstance(start_time, datetime.datetime) else start_time
+        from_time = convert_to_local_timezone(start_time).strftime(self.strftime_format_string) if isinstance(start_time, datetime.datetime) else start_time
         args = [calendar_name, event_description, event_summary, from_time, str(num_minutes), str(trigger_minutes_before)]
 
         # Run the command to connect the program to the calendar
@@ -377,6 +382,7 @@ class ASHelper:
             print(stderr.strip('\n'))
             return False
         return True
+
 
     def show_event(self, calendar_name, event_uid):
         """
@@ -413,20 +419,3 @@ _as_helper = ASHelper(lazy=True)
 add_event = _as_helper.add_event
 list_from_to = _as_helper.list_from_to
 show_event = _as_helper.show_event
-
-if __name__ == "__main__":
-
-    # Purely for testing:
-
-
-    # Make an event ten minutes in the future
-    date = datetime.datetime.now() + datetime.timedelta(minutes=10)
-    reminder = raw_input("Enter the reminder: ")
-    result = add_event("Reminders", "Test", reminder, date, 30)
-    if result:
-        print("It worked, check the calendar")
-    else:
-        print("Oops. Something went wrong")
-
-    ls = list_events("Timetable")
-    print(ls)

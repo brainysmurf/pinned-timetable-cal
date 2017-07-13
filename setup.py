@@ -19,7 +19,7 @@ TODO: DESCRIBE THIS!
 
 This version requires Python 3 or later.
 """,
-    install_requires = ['click', 'pytz', 'tzlocal'],
+    install_requires = ['click', 'dateutil'],
     entry_points='''
         [console_scripts]
         tt=cli:main

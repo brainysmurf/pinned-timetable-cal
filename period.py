@@ -1,12 +1,12 @@
 import datetime
 from collections import OrderedDict
 from app import TRIGGER_TARGET_DATE
-
+from timezone_info import now_target_timezone, target_timezone
 
 def make_period(which, name):
 	return {
 		'H': Period(name, 'H', '7:40', '8:05'),
-		'1': Period(name, '1', '8:05', '8:30'),
+		'1': Period(name, '1', '8:05', '8:45'),
 		'2': Period(name, '2', '8:45', '9:20'),
 		'3': Period(name, '3', '9:20', '10:10'),
 		'B': Period(name, 'B', '10:10', '10:30'),
@@ -195,7 +195,7 @@ def next_day(dt, target_day):
 
 def date_from_schedule(day_string, period_string, today=None):
 	if today is None:
-		today = datetime.datetime.now()
+		today = now_target_timezone()
 	day_one_index = schedule_map_inv.get(day_string.title())
 	period_index = period_map_inv.get(period_string)
 
@@ -203,7 +203,8 @@ def date_from_schedule(day_string, period_string, today=None):
 	when = next_day(today, day_one_index-1)
 	return datetime.datetime(
 		year=when.year, month=when.month, day=when.day, 
-		hour=period_item.start_hour, minute=period_item.start_minute
+		hour=period_item.start_hour, minute=period_item.start_minute,
+		tzinfo=target_timezone
 	), period_item
 
 
@@ -213,13 +214,14 @@ def calc_trigger_from_context(event_date):
 	- if it is for later today, remind 5 minutes prior
 	- if it is a future date not today, remind at 7:30 am in the morning
 	"""
-	today = datetime.datetime.today()
+	today = now_target_timezone()
 	if event_date.date() == today.date():
 		return 5
 	hour, minute = map(int, TRIGGER_TARGET_DATE.split(':'))
 	target_trigger_date = datetime.datetime(
 		year=event_date.year, month=event_date.month, day=event_date.day,
-		hour=hour, minute=minute
+		hour=hour, minute=minute,
+		tzinfo=target_timezone
 	)
 	delta = event_date - target_trigger_date
 	return int(delta.seconds / 60)
@@ -237,9 +239,4 @@ def add_super_reminder(from_date, day_string, period_string, text, calendar):
 		num_minutes=period_info.duration,
 		trigger_minutes_before=trigger
 	)
-
-if __name__ == "__main__":
-
-	add_super_reminder('Tuesday', 'Period 5', 'Print out stuff')
-
 

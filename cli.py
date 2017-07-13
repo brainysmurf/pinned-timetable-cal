@@ -3,14 +3,15 @@ The main logic to interface with it as a command line utility
 """
 
 import click
-from routine_info import schedule, schedule_abbr_map, period_map
-from routine_info import add_super_reminder, date_from_schedule
+from period import schedule, schedule_abbr_map, period_map
+from period import add_super_reminder, date_from_schedule
 import datetime
 from pycal import list_from_to, show_event, add_event, CalendarItem
 import os
 import subprocess 
 import re
 from app import CAL_NAME
+from timezone_info import now_target_timezone
 
 
 first_line_output  = "  {{0}}{{2.period}}  {{2.start_time:>5}} - {{2.end_time:<5}}  {{2.name:{0}}}  {{1}}{{3}}  "
@@ -70,26 +71,26 @@ def input_new_thing(input, description):
 
 @main.command('w', help="Weekly driven cli")
 def week_menu_default():
-    from_date = datetime.datetime.now()
-    to_date = datetime.datetime.now() + datetime.timedelta(days=6)
+    from_date = now_target_timezone()
+    to_date = now_target_timezone() + datetime.timedelta(days=6)
     menu(from_date, to_date, summary=True)
 
 
 @main.command('d', help="Menu driven cli")
 def day_menu_default():
-    the_day = datetime.datetime.now()
+    the_day = now_target_timezone()
     menu(the_day, the_day)
 
 
 @main.command('d+', help="Menu driven cli")
 def day_menu_plus_one():
-    the_day = datetime.datetime.now() + datetime.timedelta(days=1)
+    the_day = now_target_timezone()
     menu(the_day, the_day)
 
 
 @main.command('d++', help="Menu driven cli")
 def day_menu_plus_two():
-    the_day = datetime.datetime.now() + datetime.timedelta(days=2)
+    the_day = now_target_timezone() + datetime.timedelta(days=2)
     menu(the_day, the_day)
 
 
@@ -224,7 +225,7 @@ def menu(from_date, to_date, summary=False):
                     break
 
                 elif first_char == 'T':
-                    from_date = datetime.datetime.now()
+                    from_date = now_target_timezone()
                     if summary:
                         to_date = from_date + datetime.timedelta(days=6)
                     else:
