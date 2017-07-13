@@ -1,7 +1,8 @@
 # pinned-timetable-cal
-CLI to enter and view your Calendar (Mac) items through the lens of your timetable. 
+CLI to enter and view your Calendar (Mac) items through the lens of your timetable. Tweeks to code required.
 
 ## to install:
+
 Requires Mac:
 
 ```
@@ -13,6 +14,16 @@ git clone ..
 pip install -e .
 tt d  # view by day
 tt w  # view by week
+```
+
+## tweeks required
+
+Modify the following files accordingly:
+
+```
+app.py
+period.py
+timezone_info.py
 ```
 
 ## explanation

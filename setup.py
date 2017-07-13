@@ -3,7 +3,7 @@ setup(
     name = "cmd",
     version = "0.1",
     description = "",
-    author = "Adam Morris",
+    author = "Adam Morris @brainysmurf",
     author_email = "amorris@mistermorris.com",
     py_modules=['cli'],
     classifiers = [

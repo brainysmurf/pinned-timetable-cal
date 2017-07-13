@@ -53,10 +53,12 @@ def get_period_input(prompt_text="Enter period info"):
         except IndexError:
             click.echo("That input doesn't appear to be legit period info")
 
+
 @click.group()
 @click.pass_context
 def main(ctx):
     pass
+
 
 @main.command('n', help="quickly add one")
 @click.argument('input')
@@ -65,26 +67,31 @@ def input_new_thing(input, description):
     selected_day, selected_period = user_input_to_native(input)
     add_super_reminder(selected_day, selected_period, " ".join(description), CAL_NAME)
 
+
 @main.command('w', help="Weekly driven cli")
 def week_menu_default():
     from_date = datetime.datetime.now()
     to_date = datetime.datetime.now() + datetime.timedelta(days=6)
     menu(from_date, to_date, summary=True)
 
+
 @main.command('d', help="Menu driven cli")
 def day_menu_default():
     the_day = datetime.datetime.now()
     menu(the_day, the_day)
+
 
 @main.command('d+', help="Menu driven cli")
 def day_menu_plus_one():
     the_day = datetime.datetime.now() + datetime.timedelta(days=1)
     menu(the_day, the_day)
 
+
 @main.command('d++', help="Menu driven cli")
 def day_menu_plus_two():
     the_day = datetime.datetime.now() + datetime.timedelta(days=2)
     menu(the_day, the_day)
+
 
 def menu(from_date, to_date, summary=False):
     todos = {}
@@ -109,11 +116,11 @@ def menu(from_date, to_date, summary=False):
         # Recollect todos into form that incorporates events that have not been scheduled
         # along periods...
 
-
         for plus_days in range(num_days):
 
-            the_day = from_date + datetime.timedelta(days=plus_days)
-            the_day, weekday_one_indexed = print_menu(the_day)
+            the_day, weekday_one_indexed = print_menu(
+                from_date + datetime.timedelta(days=plus_days)
+            )
 
             show_reference = {}
 
@@ -200,21 +207,30 @@ def menu(from_date, to_date, summary=False):
                     from_date = from_date + datetime.timedelta(days=1)
                     to_date = to_date + datetime.timedelta(days=1)
                     break
+
                 elif first_char == '-':
                     from_date = from_date + datetime.timedelta(days=-1)
                     to_date = to_date + datetime.timedelta(days=-1)
                     break
+
                 elif first_char == 'N':
                     from_date = from_date + datetime.timedelta(days=7)
                     to_date = to_date + datetime.timedelta(days=7)
                     break
+
                 elif first_char == 'P':
                     from_date = from_date + datetime.timedelta(days=-7) 
                     to_date = to_date + datetime.timedelta(days=-7) 
                     break
+
                 elif first_char == 'T':
                     from_date = datetime.datetime.now()
+                    if summary:
+                        to_date = from_date + datetime.timedelta(days=6)
+                    else:
+                        to_date = from_date
                     break
+
                 elif first_char in log_cals:
                     cal = {'E': 'Help Log', 'C': 'Coding Log'}.get(first_char)
                     click.echo('\n')

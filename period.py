@@ -2,6 +2,7 @@ import datetime
 from collections import OrderedDict
 from app import TRIGGER_TARGET_DATE
 
+
 def make_period(which, name):
 	return {
 		'H': Period(name, 'H', '7:40', '8:05'),
@@ -70,6 +71,7 @@ class Period:
 	def ends_within_period(self, reference_date, target_date):
 		""" Returns bool whether or ends during this period """
 		pass
+
 
 class ScheduleList:
 	def __init__(self, lst):
